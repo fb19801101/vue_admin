@@ -12,10 +12,10 @@ export default {
       curveElement: curveElement
     });
   },
-  deleteCurveElement: function(ceQx, ceJD) {
+  deleteCurveElement: function(ceQx, ceJd) {
     return axios.axiosPost("/curve-element/deleteCurveElement", {
       ceQx: ceQx,
-      ceJD: ceJD
+      ceJd: ceJd
     });
   },
   selectCurveLine: function() {
@@ -56,6 +56,31 @@ export default {
   calculateCoordinate: function(
     action,
     ceQx,
+    dk,
+    dist,
+    dkBegin,
+    dkEnd,
+    dkLabel,
+    xyTp,
+    xyL0,
+    xyH0
+  ) {
+    return axios.axiosPost("/curve-element/calculateCoordinate", {
+      action: action,
+      ceQx: ceQx,
+      dk: dk,
+      dist: dist,
+      dk_begin: dkBegin,
+      dk_end: dkEnd,
+      dk_label: dkLabel,
+      xy_Tp: xyTp,
+      xy_L0: xyL0,
+      xy_H0: xyH0
+    });
+  },
+  calculateCoordinateList: function(
+    action,
+    ceQx,
     dkBegin,
     dkEnd,
     dkGap,
@@ -67,7 +92,7 @@ export default {
     xyL0,
     xyH0
   ) {
-    return axios.axiosPost("/curve-element/calculateCoordinate", {
+    return axios.axiosPost("/curve-element/calculateCoordinateList", {
       action: action,
       ceQx: ceQx,
       dk_begin: dkBegin,

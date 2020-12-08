@@ -1,14 +1,11 @@
 <template>
   <div id="measure">
     <el-row>
-      <el-button type="primary" @click="insertCurveElement"
-        >添加曲线要素</el-button
+      <el-button type="primary" @click="importExcelCurveElement"
+        >导入曲线要素</el-button
       >
-      <el-button type="primary" @click="modifyCurveElement"
-        >修改曲线要素</el-button
-      >
-      <el-button type="primary" @click="deleteCurveElement"
-        >删除曲线要素</el-button
+      <el-button type="primary" @click="exportExcelCurveElement"
+        >导出曲线要素</el-button
       >
       <el-button type="primary" @click="selectCurveLine"
         >获取曲线信息</el-button
@@ -22,42 +19,292 @@
       <el-button type="primary" @click="searchCurveElement"
         >查找曲线要素</el-button
       >
-      <el-button type="primary" @click="clearCurveElement"
+    </el-row>
+    <el-row>
+      <el-button type="primary" plain @click="insertCurveElement"
+        >添加曲线要素</el-button
+      >
+      <el-button type="primary" plain @click="modifyCurveElement"
+        >修改曲线要素</el-button
+      >
+      <el-button type="primary" plain @click="deleteCurveElement"
+        >删除曲线要素</el-button
+      >
+      <el-button type="primary" plain @click="clearCurveElement"
         >清空曲线要素</el-button
       >
     </el-row>
     <el-row>
-      <el-button type="success" plain @click="initCurveElement"
+      <el-button type="primary" @click="initCurveElement"
         >初始化曲线要素</el-button
       >
-      <el-button type="success" plain @click="importExcelCurveElement"
-        >导入曲线要素</el-button
-      >
-      <el-button type="success" plain @click="exportExcelCurveElement"
-        >导出曲线要素</el-button
-      >
-      <el-button type="success" plain @click="calculateCoordinate"
+      <el-button type="primary" @click="calculateCoordinate"
         >计算曲线坐标</el-button
       >
+      <el-button type="primary" @click="calculateCoordinateList"
+        >批量计算曲线坐标</el-button
+      >
     </el-row>
-    <CurveElement caption="曲线要素表" :columns="cols" :rows="rows" />
+    <el-row>
+      <el-col :span="3">
+        <el-form ref="form-params" :model="params" label-width="100px">
+          <el-row :gutter="20" style="margin-left: 20px">
+            <el-form-item label="ceQx">
+              <el-select
+                v-model="ceQx"
+                @change="selectChanged"
+                placeholder="请选择曲线名称"
+                style="margin-left:10px; width:240px"
+              >
+                <el-option
+                  v-for="(qx, index) in ceQxs"
+                  :key="index"
+                  :label="index + 1 + '. ' + splitCeQx(qx) + ' 曲线要素'"
+                  :value="qx"
+                ></el-option>
+              </el-select>
+            </el-form-item>
+          </el-row>
+          <el-row :gutter="20" style="margin-left:30px">
+            <el-form-item label="action">
+              <el-radio-group v-model="action" style="padding:0 10px">
+                <el-radio :label="0">曲线坐标计算</el-radio>
+                <el-radio :label="1">大地坐标转换</el-radio>
+              </el-radio-group>
+            </el-form-item>
+          </el-row>
+          <hr />
+          <el-row :gutter="20">
+            <el-form-item label="dkBegin">
+              <el-input
+                v-model="params.dkBegin"
+                placeholder="请输入起点里程"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkEnd">
+              <el-input
+                v-model="params.dkEnd"
+                placeholder="请输入终点里程"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkGap">
+              <el-input
+                v-model="params.dkGap"
+                placeholder="请输入里程间距"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkDist">
+              <el-input
+                v-model="params.dkDist"
+                placeholder="请输入桩偏距"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkBeginBreak">
+              <el-input
+                v-model="params.dkBeginBreak"
+                placeholder="请输入断链起点"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkEndBreak">
+              <el-input
+                v-model="params.dkEndBreak"
+                placeholder="请输入断链终点"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="dkLabelBreak">
+              <el-input
+                v-model="params.dkLabelBreak"
+                placeholder="请输入断链标识"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="xyTp">
+              <el-input
+                v-model="params.xyTp"
+                placeholder="请输入坐标系类型"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="xyL0">
+              <el-input
+                v-model="params.xyL0"
+                placeholder="请输入中央子午线"
+              ></el-input>
+            </el-form-item>
+            <el-form-item label="xyH0">
+              <el-input
+                v-model="params.xyH0"
+                placeholder="请输入投影面高程"
+              ></el-input>
+            </el-form-item>
+          </el-row>
+          <hr />
+          <el-row :gutter="20">
+            <el-form ref="form-search" :model="search" label-width="100px">
+              <el-form-item label="field">
+                <el-input
+                  v-model="search.field"
+                  placeholder="请输入查询的字段名称"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="value">
+                <el-input
+                  v-model="search.value"
+                  placeholder="请输入查询的字段数值"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="page">
+                <el-input
+                  v-model="search.page"
+                  placeholder="请输入查询结果的起始页"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="limit">
+                <el-input
+                  v-model="search.limit"
+                  placeholder="请输入查询结果页的条目数"
+                ></el-input>
+              </el-form-item>
+            </el-form>
+          </el-row>
+          <hr />
+          <el-row :gutter="20">
+            <el-form ref="form-curve" :model="curve" label-width="100px">
+              <el-form-item label="ceId">
+                <el-input
+                  v-model="curve.ceId"
+                  placeholder="请输入交点ID"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceJd">
+                <el-input
+                  v-model="curve.ceJd"
+                  placeholder="请输入交点编号"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceDk">
+                <el-input
+                  v-model="curve.ceDk"
+                  placeholder="请输入交点里程"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceEx">
+                <el-input
+                  v-model="curve.ceEx"
+                  placeholder="请输入交点坐标EX"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceNy">
+                <el-input
+                  v-model="curve.ceNy"
+                  placeholder="请输入交点坐标NY"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceT1">
+                <el-input
+                  v-model="curve.ceT1"
+                  placeholder="请输入前切线长"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceT2">
+                <el-input
+                  v-model="curve.ceT2"
+                  placeholder="请输入后切线长"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceR1">
+                <el-input
+                  v-model="curve.ceR1"
+                  placeholder="请输入前缓和曲线半径"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceR2">
+                <el-input
+                  v-model="curve.ceR2"
+                  placeholder="请输入后缓和曲线半径"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceLs1">
+                <el-input
+                  v-model="curve.ceLs1"
+                  placeholder="请输入前缓和曲线长度"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceLs2">
+                <el-input
+                  v-model="curve.ceLs2"
+                  placeholder="请输入后缓和曲线长度"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceRc">
+                <el-input
+                  v-model="params.ceRc"
+                  placeholder="请输入圆曲线半径"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceLc">
+                <el-input
+                  v-model="curve.ceLc"
+                  placeholder="请输入圆曲线长度"
+                ></el-input>
+              </el-form-item>
+              <el-form-item label="ceLz">
+                <el-input
+                  v-model="curve.ceLz"
+                  placeholder="请输入夹直线长度"
+                ></el-input>
+              </el-form-item>
+            </el-form>
+          </el-row>
+        </el-form>
+      </el-col>
+      <el-col :span="6" :offset="1">
+        <VueTable
+          caption="坐标计算结果"
+          :toolbar="{ search: true }"
+          :cols="xy_cols"
+          :rows="xy_rows"
+        />
+      </el-col>
+      <el-col :span="13" :offset="1">
+        <VueTable
+          caption="曲线要素表"
+          :cols="cols"
+          :rows="rows"
+          :refresh="refresh"
+          :page="page"
+          :toolbar="{ search: true, left: true, right: true }"
+          @handleRow="handleRow"
+          @handleSort="handleSort"
+          @handlePage="handlePage"
+        />
+      </el-col>
+    </el-row>
   </div>
 </template>
 
 <script>
 import axios from "@/utils/baseAxios";
 import CurveElementApi from "@/api/CurveElement";
-import CurveElement from "@/components/CurveElement";
+import VueTable from "@components/VueTable";
 
 export default {
   name: "Measure",
   components: {
-    CurveElement
+    VueTable
   },
   data() {
     return {
       cols: [],
-      rows: []
+      rows: [],
+      page: {},
+      xy_cols: [],
+      xy_rows: [],
+      ceQx: "",
+      ceQxs: {},
+      action: 0,
+      params: {},
+      search: {},
+      curve: {},
+      refresh: ""
     };
   },
   created() {
@@ -73,240 +320,353 @@ export default {
     }
 
     const _this = this;
+
+    _this.ceQx = "K161+800.957-K182+828.224";
+    _this.action = 0;
+    _this.params = {
+      dkBegin: 175600,
+      dkEnd: 182100,
+      dkGap: 20,
+      dkDist: 0,
+      dkBeginBreak: 178065,
+      dkEndBreak: 178221.702,
+      dkLabelBreak: "A",
+      xyTp: 2,
+      xyL0: 113.2,
+      xyH0: 0
+    };
+    _this.search = {
+      field: "ce_jd",
+      value: "JD22",
+      page: 1,
+      limit: 20
+    };
+    _this.curve = {
+      ceId: 0,
+      ceJd: "JD000",
+      ceDk: 123,
+      ceEx: 123,
+      ceNy: 123,
+      ceT1: 123,
+      ceT2: 123,
+      ceR1: 123,
+      ceR2: 123,
+      ceLs1: 123,
+      ceLs2: 123,
+      ceRc: 123,
+      ceLc: 123,
+      ceLz: 123
+    };
+
     _this.cols = [
       {
         id: 1,
         prop: "ceId",
         label: "序号",
         width: 60,
-        sort: true,
-        fixed: false
+        sort: true
       },
       {
         id: 2,
         prop: "ceJd",
         label: "交点编号",
         width: 100,
-        sort: true,
-        fixed: false
+        sort: true
       },
       {
         id: 3,
         prop: "ceDk",
         label: "交点里程",
         width: 100,
-        sort: true,
-        fixed: false
+        sort: true
       },
       {
         id: 4,
         prop: "ceEx",
         label: "交点坐标",
-        width: 100,
-        sort: false,
-        fixed: false
+        width: 120,
+        sort: false
       },
       {
         id: 5,
         prop: "ceNy",
         label: "交点坐标",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 6,
         prop: "ceT1",
         label: "前切线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 7,
         prop: "ceT2",
         label: "后切线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 8,
         prop: "ceR1",
         label: "前缓和曲线半径",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 9,
         prop: "ceR2",
         label: "后缓和曲线半径",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 10,
         prop: "ceA1",
         label: "前缓和曲线参数",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 11,
         prop: "ceA2",
         label: "后缓和曲线参数",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 12,
         prop: "ceLs1",
         label: "前缓和曲线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 13,
         prop: "ceLs2",
         label: "后缓和曲线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 14,
         prop: "ceRc",
         label: "圆曲线半径",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 15,
         prop: "ceLc",
         label: "圆曲线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 16,
         prop: "ceLz",
         label: "夹直线长",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 17,
         prop: "ceE",
         label: "外失距",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 18,
         prop: "cePj",
         label: "偏角",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 19,
         prop: "ceFwj",
         label: "方位角",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 20,
         prop: "ceQd",
         label: "起点里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 21,
         prop: "ceZh",
         label: "直缓里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 22,
         prop: "ceHy",
         label: "缓圆里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 23,
         prop: "ceYh",
         label: "圆缓里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 24,
         prop: "ceHz",
         label: "缓直里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
       },
       {
         id: 25,
         prop: "ceZd",
         label: "终点里程",
         width: 100,
-        sort: false,
-        fixed: false
+        sort: false
+      },
+      {
+        id: 26,
+        prop: "ceDo",
+        label: "操作",
+        width: 130,
+        slot: [
+          { type: "click", name: "edit" },
+          { type: "click", name: "del" }
+        ]
+      }
+    ];
+
+    _this.xy_cols = [
+      {
+        id: 1,
+        prop: "dkS",
+        label: "里程S",
+        width: 120,
+        sort: true
+      },
+      {
+        id: 2,
+        prop: "dkX",
+        label: "坐标X",
+        width: 120,
+        sort: true
+      },
+      {
+        id: 3,
+        prop: "dkY",
+        label: "坐标Y",
+        width: 120,
+        sort: true
+      },
+      {
+        id: 4,
+        prop: "dkL",
+        label: "经度L",
+        width: 130,
+        sort: false
+      },
+      {
+        id: 5,
+        prop: "dkN",
+        label: "纬度N",
+        width: 130,
+        sort: false
       }
     ];
 
     CurveElementApi.selectCurveElement()
       .then(res => {
         _this.rows = res.data.data;
+        _this.page = { total: res.data.count, size: 20, cur: 1 };
+      })
+      .catch(err => {
+        console.log(err);
+      });
+
+    CurveElementApi.selectCurveLine()
+      .then(res => {
+        _this.ceQxs = res.data.data;
       })
       .catch(err => {
         console.log(err);
       });
   },
   methods: {
+    splitCeQx: function(str) {
+      var strs = str.split("+");
+      var _strs = strs[1].split("-");
+      return strs[0] + "—" + _strs[1];
+    },
     insertCurveElement: function() {
-      CurveElementApi.insertCurveElement({})
+      const _this = this;
+      CurveElementApi.insertCurveElement({
+        ceQx: _this.ceQx,
+        ceId: _this.curve.ceId,
+        ceJd: _this.curve.ceJd,
+        ceDk: _this.curve.ceDk,
+        ceEx: _this.curve.ceEx,
+        ceNy: _this.curve.ceNy,
+        ceT1: _this.curve.ceT1,
+        ceT2: _this.curve.ceT2,
+        ceR1: _this.curve.ceR1,
+        ceR2: _this.curve.ceR2,
+        ceLs1: _this.curve.ceLs1,
+        ceLs2: _this.curve.ceLs2,
+        ceRc: _this.curve.ceRc,
+        ceLc: _this.curve.ceLc,
+        ceLz: _this.curve.ceLz
+      })
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
         });
     },
     modifyCurveElement: function() {
-      CurveElementApi.modifyCurveElement({})
+      const _this = this;
+      CurveElementApi.modifyCurveElement({
+        ceQx: _this.ceQx,
+        ceId: _this.curve.ceId,
+        ceJd: _this.curve.ceJd,
+        ceDk: _this.curve.ceDk,
+        ceEx: _this.curve.ceEx,
+        ceNy: _this.curve.ceNy,
+        ceT1: _this.curve.ceT1,
+        ceT2: _this.curve.ceT2,
+        ceR1: _this.curve.ceR1,
+        ceR2: _this.curve.ceR2,
+        ceLs1: _this.curve.ceLs1,
+        ceLs2: _this.curve.ceLs2,
+        ceRc: _this.curve.ceRc,
+        ceLc: _this.curve.ceLc,
+        ceLz: _this.curve.ceLz
+      })
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
         });
     },
     deleteCurveElement: function() {
-      CurveElementApi.deleteCurveElement("", "")
+      const _this = this;
+      CurveElementApi.deleteCurveElement(_this.ceQx, _this.curve.ceJd)
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
@@ -316,6 +676,7 @@ export default {
       CurveElementApi.selectCurveLine()
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
@@ -325,6 +686,7 @@ export default {
       CurveElementApi.selectCurveElement()
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
@@ -340,9 +702,16 @@ export default {
         });
     },
     searchCurveElement: function() {
-      CurveElementApi.searchCurveElement("ce_JD", "JD22", 1, 10)
+      const _this = this;
+      CurveElementApi.searchCurveElement(
+        _this.search.field,
+        _this.search.value,
+        _this.search.page,
+        _this.search.limit
+      )
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
@@ -352,15 +721,22 @@ export default {
       CurveElementApi.clearCurveElement()
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
         });
     },
     initCurveElement: function() {
-      CurveElementApi.initCurveElement("", 0, 0)
+      const _this = this;
+      CurveElementApi.initCurveElement(
+        _this.ceQx,
+        _this.params.dkBeginBreak,
+        _this.params.dkEndBreak
+      )
         .then(res => {
           alert(res.data.code);
+          console.log(res.data.data);
         })
         .catch(err => {
           console.log(err);
@@ -385,9 +761,78 @@ export default {
         });
     },
     calculateCoordinate: function() {
-      CurveElementApi.calculateCoordinate(0, "", 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
+      const _this = this;
+      CurveElementApi.calculateCoordinate(
+        _this.action,
+        _this.ceQx,
+        _this.params.dkBegin,
+        _this.params.dkDist,
+        _this.params.dkBeginBreak,
+        _this.params.dkEndBreak,
+        _this.params.dkLabelBreak,
+        _this.params.xyTp,
+        _this.params.xyL0,
+        _this.params.xyH0
+      )
         .then(res => {
           alert(res.data.code);
+          _this.xy_rows.push(res.data.data);
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    calculateCoordinateList: function() {
+      const _this = this;
+      CurveElementApi.calculateCoordinateList(
+        _this.action,
+        _this.ceQx,
+        _this.params.dkBegin,
+        _this.params.dkEnd,
+        _this.params.dkGap,
+        _this.params.dkDist,
+        _this.params.dkBeginBreak,
+        _this.params.dkEndBreak,
+        _this.params.dkLabelBreak,
+        _this.params.xyTp,
+        _this.params.xyL0,
+        _this.params.xyH0
+      )
+        .then(res => {
+          alert(res.data.code);
+          _this.xy_rows = res.data.data;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    selectChanged: function(val) {
+      const _this = this;
+      CurveElementApi.searchCurveElement("ce_QX", val, 1, 20)
+        .then(res => {
+          alert(res.data.code);
+          _this.rows = res.data.data;
+          _this.page = { total: res.data.count, size: 20, cur: 1 };
+          _this.refresh = val;
+        })
+        .catch(err => {
+          console.log(err);
+        });
+    },
+    handleRow(row, type) {
+      alert(JSON.stringify(row));
+      alert(type);
+    },
+    handleSort(prop, order) {
+      alert(prop);
+      alert(order);
+    },
+    handlePage(value) {
+      const _this = this;
+      CurveElementApi.searchCurveElement("ce_ID", null, value, 20)
+        .then(res => {
+          _this.rows = res.data.data;
+          _this.refresh = value;
         })
         .catch(err => {
           console.log(err);
@@ -401,7 +846,7 @@ export default {
 #measure {
   margin-top: 30px;
   margin-left:auto; margin-right:auto
-  width:95%
+  width:2655px
 }
 
 button {

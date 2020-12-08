@@ -84,7 +84,7 @@ export default {
         axios.axiosBaseUrl("/login");
         break;
       case "production":
-        axios.axiosBaseUrl("http://localhost:8089");
+        axios.axiosBaseUrl("http://localhost:8059");
         break;
     }
   },

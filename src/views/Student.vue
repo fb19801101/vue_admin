@@ -3,25 +3,21 @@
     <el-row>
       <el-button type="primary" @click="getStudent">get参数</el-button>
       <el-button type="primary" @click="postStudent">Post参数</el-button>
-      <el-input
-        v-model="name"
-        placeholder="请输入内容"
-        style="margin-left: 5px; width:200px"
-      ></el-input>
+      <el-input v-model="name" placeholder="请输入内容" style="margin-left: 5px; width:200px"></el-input>
     </el-row>
-    <StudentInfo caption="学生信息表" :cols="cols" :rows="rows" />
+    <VueTable caption="学生信息表" :cols="cols" :rows="rows" />
   </div>
 </template>
 
 <script>
 import axios from "@/utils/baseAxios";
 import studentApi from "@/api/student";
-import StudentInfo from "@/components/StudentInfo";
+import VueTable from "@components/VueTable";
 
 export default {
   name: "Student",
   components: {
-    StudentInfo
+    VueTable
   },
   data() {
     return {
@@ -38,7 +34,7 @@ export default {
         axios.axiosBaseUrl("/consumer");
         break;
       case "production":
-        axios.axiosBaseUrl("http://localhost:8085");
+        axios.axiosBaseUrl("http://localhost:8055");
         break;
     }
 
@@ -48,7 +44,7 @@ export default {
         id: 1,
         prop: "name",
         label: "姓名",
-        width: 80,
+        width: 120,
         sort: true,
         fixed: false
       },
@@ -56,7 +52,7 @@ export default {
         id: 2,
         prop: "age",
         label: "年龄",
-        width: 50,
+        width: 85,
         sort: false,
         fixed: false
       }
@@ -104,7 +100,7 @@ export default {
 #student {
   margin-top: 30px;
   margin-left:auto; margin-right:auto
-  width:520px
+  width:250px
 
 }
 </style>

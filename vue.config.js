@@ -29,7 +29,7 @@ module.exports = {
 
       "/consumer": {
         // axios 后端加载
-        target: "http://localhost:8085",
+        target: "http://localhost:8055",
         changeOrigin: true,
         pathRewrite: {
           "^/consumer": ""
@@ -38,7 +38,7 @@ module.exports = {
 
       "/curve-element": {
         // axios 后端加载
-        target: "http://localhost:8087",
+        target: "http://localhost:8057",
         changeOrigin: true,
         pathRewrite: {
           "^/curve-element": ""
@@ -47,7 +47,7 @@ module.exports = {
 
       "/login": {
         // axios 后端加载
-        target: "http://localhost:8089",
+        target: "http://localhost:8059",
         changeOrigin: true,
         pathRewrite: {
           "^/login": ""
@@ -57,12 +57,12 @@ module.exports = {
       "/ws": {
         // 拦截所有以‘ws’开头请求的websocket进行转发(新手可以不配置)
         ws: true,
-        target: "ws://localhost:8085"
+        target: "ws://localhost:8055"
       },
 
       "/api": {
         // 拦截所有 HTTP 请求，将之转发到后端服务器上（前端默认端口是 8880），后端的端口是 8085，如果大家有统一的请求前缀那么可以写成/xxx
-        target: "http://localhost:8085",
+        target: "http://localhost:8055",
         changeOrigin: true,
         pathRewrite: {
           "^/api": ""
